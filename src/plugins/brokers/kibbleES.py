@@ -216,7 +216,7 @@ class KibbleOrganisation:
     """ KibbleOrg with direct ElasticSearch access """
     def __init__(self, broker, org):
         """ Init an org, set up ElasticSearch for KibbleBits later on """
-        
+        print("broker : ", broker)
         self.broker = broker
         self.id = org
     
@@ -329,16 +329,21 @@ class Broker:
             if not es.indices.exists(index = es_config['database']):
                 sys.stderr.write("Could not find database %s in ElasticSearch!\n" % es_config['database'])
                 sys.exit(-1)
-        apidoc = es.get(index=es_config['database'], doc_type='api', id = 'current')['_source']
-        #apidoc = es.get(index=es_config['database'], doc_type='None', id = 'current')['_source']
+        #apidoc = es.get(index=es_config['database'], doc_type='api', id = 'current')['_source']
+        apidoc = es.get(index=es_config['database'], doc_type='api', id = 'Jr5y2IEBMPB28AWY69KE')['_source']
+        print(apidoc)
+        #print(apidoc['settings']['index']['dbversion'])
         # We currently accept and know how to use DB versions 1 and 2.
-        if apidoc['dbversion'] not in ACCEPTED_DB_VERSIONS:
-            if apidoc['dbversion'] > KIBBLE_DB_VERSION:
-                sys.stderr.write("The database '%s' uses a newer structure format (version %u) than the scanners (version %u). Please upgrade your scanners.\n" % (es_config['database'], apidoc['dbversion'], KIBBLE_DB_VERSION))
-                sys.exit(-1)
-            if apidoc['dbversion'] < KIBBLE_DB_VERSION:
-                sys.stderr.write("The database '%s' uses an older structure format (version %u) than the scanners (version %u). Please upgrade your main Kibble server.\n" % (es_config['database'], apidoc['dbversion'], KIBBLE_DB_VERSION))
-                sys.exit(-1)
+        #if apidoc['dbversion'] not in ACCEPTED_DB_VERSIONS:
+        #if apidoc['settings']['index']['dbversion'] not in ACCEPTED_DB_VERSIONS:
+        #    if apidoc['dbversion'] > KIBBLE_DB_VERSION:
+            #if apidoc['_version'] > KIBBLE_DB_VERSION:
+        #        sys.stderr.write("The database '%s' uses a newer structure format (version %u) than the scanners (version %u). Please upgrade your scanners.\n" % (es_config['database'], apidoc['dbversion'], KIBBLE_DB_VERSION))
+        #        sys.exit(-1)
+        #    if apidoc['dbversion'] < KIBBLE_DB_VERSION:
+        #    #if apidoc['_version'] < KIBBLE_DB_VERSION:
+        #        sys.stderr.write("The database '%s' uses an older structure format (version %u) than the scanners (version %u). Please upgrade your main Kibble server.\n" % (es_config['database'], apidoc['dbversion'], KIBBLE_DB_VERSION))
+        #        sys.exit(-1)
     
     def organisations(self):
         """ Return a list of all organisations """
@@ -356,8 +361,11 @@ class Broker:
             }
         )
     
+        print("Result is :" , res)
         for hit in res['hits']['hits']:
-            org = hit['_source']['id']
+            print(hit['_source'])
+            org = hit['_source']['settings']['index']['_id']
+            print("Organisation is : ", org)
             orgClass = KibbleOrganisation(self, org)
             yield orgClass
         
